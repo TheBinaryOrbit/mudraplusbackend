@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// Example User model
+model User {
+    id Int @id @default(autoincrement())
+
+    // personal details
+    email    String  @unique
+    name     String?
+    phone    String  @unique
+    password String
+    gender   Gender?
+    dob      String?
+
+    // company details
+    employmentType   EmploymentType?
+    companyName      String?
+    netMonthlyIncome Float?
+    nextIncomeDate   String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    isVerified     Boolean   @default(false)
+    isBlocked      Boolean   @default(false)
+    kycCompletedAt DateTime?
+    kycStatus     kycStatus @default(pending)
+
+    addresses   Address[]
+    bankDetails BankDetails[]
+
+    documents Document[]
+
+    @@map("users")
+}
+
+model Address {
+    id     Int @id @default(autoincrement())
+    userId Int
+
+    street  String
+    pinCode String
+    city    String
+    state   String
+
+    addressType AddressType
+
+    user User @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("addresses")
+}
+
+model BankDetails {
+    id     Int @id @default(autoincrement())
+    userId Int
+
+    bankName          String
+    accountNumber     String
+    ifscCode          String
+    accountHolderName String
+
+    user User @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    isdeleted Boolean @default(false)
+
+    @@map("bank_details")
+}
+
+model Document {
+    id     Int @id @default(autoincrement())
+    userId Int
+
+    documentType DocumentType
+    documentUrl  String
+
+    user User @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("documents")
+}
+
+// ======================= Enums ================================= //
+enum Gender {
+    male
+    female
+    other
+}
+
+enum EmploymentType {
+    self
+    employed
+}
+
+enum AddressType {
+    residential
+    employment
+}
+
+enum DocumentType {
+    aadhar
+    pan
+    selfie
+    bankStatement
+    cibilScore
+    residentialAddressProof
+    employmentAddressProof
+}
+
+
+enum kycStatus {
+    pending
+    submitted
+    verified
+    rejected
+    resubmit
+}
