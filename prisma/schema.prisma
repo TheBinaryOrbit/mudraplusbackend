@@ -34,12 +34,14 @@ model User {
     isVerified     Boolean   @default(false)
     isBlocked      Boolean   @default(false)
     kycCompletedAt DateTime?
-    kycStatus     kycStatus @default(pending)
+    kycStatus      kycStatus @default(pending)
 
     addresses   Address[]
     bankDetails BankDetails[]
 
-    documents Document[]
+    documents  Document[]
+    loans      loan[]
+    transactions  transaction[]
 
     @@map("users")
 }
@@ -79,6 +81,8 @@ model BankDetails {
 
     isdeleted Boolean @default(false)
 
+    loans loan[]
+
     @@map("bank_details")
 }
 
@@ -95,6 +99,66 @@ model Document {
     updatedAt DateTime @updatedAt
 
     @@map("documents")
+}
+
+model loan {
+    id         Int    @id @default(autoincrement())
+    userId     Int
+    bankId     Int
+    loanNumber String @unique @default(dbgenerated("('MP' || LPAD(FLOOR(random() * 10000000000)::text, 10, '0'))"))
+
+    requestedAmount Float
+    requestedTenure Int // in days
+
+    principalAmount Float?
+    tenure          Int? // in days
+
+    // intrest 
+    intrestType  IntrestType?
+    intrestRate  Float?
+    totalIntrest Float?
+
+    totalAmountPayable Float?
+
+    status loanStatus @default(requested)
+
+    // date 
+    startDate DateTime?
+    endDate   DateTime?
+
+    paidAmount      Float? @default(0)
+    remainingAmount Float?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user User        @relation(fields: [userId], references: [id])
+    bank BankDetails @relation(fields: [bankId], references: [id])
+
+    transactions  transaction[]
+
+    @@map("loans")
+}
+
+model transaction {
+    id     Int @id @default(autoincrement())
+    loanId Int
+    userId Int
+
+    amount          Float
+    transactionType transactionType
+
+    rpzOrderId         String? @unique
+    rpzRefundPaymentId String? @unique
+    rpzPaymentId       String? @unique
+
+    user User @relation(fields: [userId], references: [id])
+    loan loan @relation(fields: [loanId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("transactions")
 }
 
 // ======================= Enums ================================= //
@@ -124,11 +188,30 @@ enum DocumentType {
     employmentAddressProof
 }
 
-
 enum kycStatus {
     pending
     submitted
     verified
     rejected
     resubmit
+}
+
+enum IntrestType {
+    flat
+    daily
+}
+
+enum loanStatus {
+    requested
+    applied
+    approved
+    active
+    closed
+    overdue
+    defaulted
+}
+
+enum transactionType {
+    disbursement
+    repayment
 }
