@@ -1,8 +1,10 @@
 import { LoanService } from "../services/loan.service.js";
+import { TransactionService } from "../services/transaction.service.js";
 
 export class LoanController {
     constructor() {
         this.loanService = new LoanService();
+        this.transactionService = new TransactionService();
     }
 
     createLoan = async (req, res) => {
@@ -49,7 +51,7 @@ export class LoanController {
                 return res.status(400).json({ message: 'Validation errors', errors });
             }
 
-            if (loanData.intrestType.match(/^flat|daily^/)) {
+            if (!loanData.intrestType.match(/^(flat|daily)$/i)) {
                 errors.push({ field: "intrestType", message: "Intrest type must be either 'flat' or 'daily'" });
                 return res.status(400).json({ message: 'Validation errors', errors });
             }
@@ -64,7 +66,7 @@ export class LoanController {
                 status: 'approved'
             }
 
-            const updatedLoan = await this.loanService.adminUpdateLoan(loanId, payload);
+            const updatedLoan = await this.loanService.adminUpdateLoan(parseInt(loanId), payload);
             res.status(200).json({
                 message: 'Loan reviewed successfully',
                 loan: updatedLoan
@@ -82,12 +84,13 @@ export class LoanController {
             const payload = {
                 status: 'applied',
             }
-            const updatedLoan = await this.loanService.userUpdateLoan(loanId, payload, user.id);
+            const updatedLoan = await this.loanService.userUpdateLoan(parseInt(loanId), payload, user.id);
             res.status(200).json({
                 message: 'Loan requested successfully',
                 loan: updatedLoan
             });
         } catch (error) {
+            console.error(error);
             res.status(500).json({ error: 'Failed to request loan' });
         }
     }
@@ -97,7 +100,7 @@ export class LoanController {
             const loanId = req.params.id;
 
             const date = new Date();
-            const loan = await this.loanService.getLoanById(loanId);
+            const loan = await this.loanService.getLoanById(parseInt(loanId));
 
 
             const payload = {
@@ -107,13 +110,25 @@ export class LoanController {
                 paidAmount: 0,
                 remainingAmount: loan.totalAmountPayable,
             }
-            const updatedLoan = await this.loanService.adminUpdateLoan(loanId, payload);
+
+            const transactionData = {
+                loanId: loan.id,
+                userId: loan.userId,
+                amount: loan.principalAmount,
+                transactionType: 'disbursement',
+            }
+            
+            const [updatedLoan , transaction] = await Promise.all([
+                this.loanService.adminUpdateLoan(parseInt(loanId), payload),
+                this.transactionService.createTranscation(transactionData)
+            ]);
             res.status(200).json({
                 message: 'Loan approved successfully',
                 loan: updatedLoan
             });
         }
         catch (error) {
+            console.error(error);
             res.status(500).json({ error: 'Failed to approve loan' });
         }
     }
@@ -142,7 +157,7 @@ export class LoanController {
             const user = req.user;
             const loanId = req.params.id;
 
-            const loan = await this.loanService.getLoanById(loanId);
+            const loan = await this.loanService.getLoanById(parseInt(loanId));
 
             if (!loan) {
                 return res.status(404).json({ error: 'Loan not found' });
@@ -151,6 +166,7 @@ export class LoanController {
                 loan: loan
             });
         } catch (error) {
+            console.error(error);
             res.status(500).json({ error: 'Failed to fetch loan' });
         }
     }

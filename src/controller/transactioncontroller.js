@@ -1,4 +1,4 @@
-import { TransactionService } from "../services/transaction.service";
+import { TransactionService } from "../services/transaction.service.js";
 import { LoanService } from "../services/loan.service.js";
 
 export class TransactionController {
@@ -17,22 +17,29 @@ export class TransactionController {
             const order = await this.transactionService.createOrder(amount, currency, receipt);
             res.status(201).json(order);
         } catch (error) {
+            console.error(error);
             res.status(500).json({ error: error.message });
         }
     };
 
     createTransaction = async (req, res) => {
+        const user = req.user;
         const transactionData = req.body;
 
         const errors = [];
-        if (!transactionData.loanId || !transactionData.userId || !transactionData.amount || !transactionData.transactionType || !transactionData.rpzOrderId || !transactionData.rpzPaymentId || !transactionData.rpzSignature) {
+        if (!transactionData.loanId || !transactionData.amount || !transactionData.transactionType || !transactionData.rpzOrderId || !transactionData.rpzPaymentId || !transactionData.rpzSignature) {
             if (!transactionData.loanId) errors.push({ field: "loanId", message: "Loan ID is required" });
-            if (!transactionData.userId) errors.push({ field: "userId", message: "User ID is required" });
             if (!transactionData.amount) errors.push({ field: "amount", message: "Amount is required" });
             if (!transactionData.transactionType) errors.push({ field: "transactionType", message: "Transaction type is required" });
             if (!transactionData.rpzOrderId) errors.push({ field: "rpzOrderId", message: "Razorpay Order ID is required" });
             if (!transactionData.rpzPaymentId) errors.push({ field: "rpzPaymentId", message: "Razorpay Payment ID is required" });
             if (!transactionData.rpzSignature) errors.push({ field: "rpzSignature", message: "Razorpay Signature is required" });
+            return res.status(400).json({ message: 'Validation errors', errors });
+        }
+
+
+        if(!transactionData.transactionType.match(/^(repayment|disbursement)$/i)){
+            errors.push({ field: "transactionType", message: "Transaction type must be either 'repayment' or 'disbursement'" });
             return res.status(400).json({ message: 'Validation errors', errors });
         }
 
@@ -43,7 +50,7 @@ export class TransactionController {
         }
 
         try {
-            const newTransaction = await this.transactionService.createTranscation(transactionData);
+            const newTransaction = await this.transactionService.createTranscation(transactionData , user.id);
 
             if (!newTransaction) {
                 return res.status(400).json({ error: 'Transaction creation failed due to invalid payment signature' });
@@ -67,6 +74,7 @@ export class TransactionController {
                 transaction: newTransaction
             });
         } catch (error) {
+            console.error(error);
             res.status(500).json({ error: error.message });
         }
 
@@ -87,9 +95,16 @@ export class TransactionController {
         const user = req.user;
         try {
             const transactions = await this.transactionService.getTransactionByUserId(user.id);
+            transactions.map((tnx) => {
+                tnx.rpzOrderId = undefined;
+                tnx.rpzRefundPaymentId = undefined;
+                tnx.rpzPaymentId = undefined;
+                tnx.updatedAt = undefined;
+            })
             res.status(200).json(transactions);
         }
         catch (error) {
+            console.error(error);
             res.status(500).json({ error: 'Failed to fetch transactions' });
         }
     };

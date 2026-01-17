@@ -9,6 +9,8 @@ import { userRouter } from './src/routes/user.routes.js';
 import { authRouter } from './src/routes/auth.routes.js';
 import { bankRouter } from './src/routes/bank.routes.js';
 import { addressRouter } from './src/routes/address.routes.js';
+import { loanRouter } from './src/routes/loan.route.js';
+import { transactionRouter } from './src/routes/transaction.router.js';
 
 
 // Initialize Express app
@@ -54,6 +56,8 @@ app.use('/api/v1/user', userRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/bank', bankRouter);
 app.use('/api/v1/address', addressRouter);
+app.use('/api/v1/loan', loanRouter);
+app.use('/api/v1/transaction', transactionRouter);
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });

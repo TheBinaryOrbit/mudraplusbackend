@@ -20,5 +20,6 @@ userRouter.post("/document/:doctype", userController.uploadDocument);
 userRouter.get("/documents", userController.getDocuments);
 userRouter.put("/document/:doctype", userController.updateDocument);
 userRouter.patch("/submit-kyc", userController.submitkyc);
+userRouter.get("/dashboard", userController.getDashboardStats);
 
 export { userRouter };

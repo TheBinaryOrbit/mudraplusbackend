@@ -30,9 +30,30 @@ export class LoanService {
         return await Prisma.loan.findUnique({
             where: { id: loanId },
             include : {
-                user: true,
-                bank: true,
-                transactions: true
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                    }
+                },
+                bank: {
+                    select: {
+                        id: true,
+                        bankName : true,
+                        accountNumber : true,
+                        ifscCode : true
+                    }
+                },
+                transactions: {
+                    select: {
+                        id: true,
+                        amount: true,
+                        transactionType: true,
+                        createdAt: true
+                    }
+                }
             }
         });
     }
@@ -40,6 +61,27 @@ export class LoanService {
     async getLoansByUserId(userId) {
         return await Prisma.loan.findMany({
             where: { userId: userId },
+            select : {
+                id: true,
+                loanNumber : true,
+                bank: {
+                    select: {
+                        id: true,
+                        bankName : true,
+                        accountNumber : true
+                    }
+                },
+                requestedAmount: true,
+                requestedTenure: true,
+                principalAmount: true,
+                tenure: true,
+                intrestRate : true,
+                intrestType : true,
+                totalAmountPayable  :true,
+                status : true,
+                startDate : true,
+                endDate : true,
+            }
         });
     }
 }

@@ -17,12 +17,14 @@ export class TransactionService {
         }
     }
 
-    async createTranscation(transactionData) {
+    async createTranscation(transactionData , userId) {
 
         //  Verify payment signature
-        const { rpzOrderId, rpzPaymentId, rpzSignature } = transactionData;
-        if(this.verifyPaymentSignature({rpzOrderId , rpzPaymentId, rpzSignature})){
-            throw new Error('Invalid payment signature');
+        if (transactionData.transactionType === 'repayment') {
+            const { rpzOrderId, rpzPaymentId, rpzSignature } = transactionData;
+            if (!this.verifyPaymentSignature({ rpzOrderId, rpzPaymentId, rpzSignature })) {
+                throw new Error('Invalid payment signature');
+            }
         }
 
         // create transaction in the database
@@ -30,7 +32,7 @@ export class TransactionService {
             const newTransaction = await Prisma.transaction.create({
                 data: {
                     loanId: transactionData.loanId,
-                    userId: transactionData.userId,
+                    userId: userId ? userId : transactionData.userId,
                     amount: transactionData.amount,
                     transactionType: transactionData.transactionType,
                     rpzOrderId: transactionData.rpzOrderId,
@@ -43,7 +45,7 @@ export class TransactionService {
         }
     }
 
-    async verifyPaymentSignature(paymentDetails) {    
+    async verifyPaymentSignature(paymentDetails) {
         const generatedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
             .update(paymentDetails.rpzOrderId + '|' + paymentDetails.rpzPaymentId)
             .digest('hex');

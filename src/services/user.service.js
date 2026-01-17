@@ -54,7 +54,7 @@ export class UserService {
         // at least 2 addresses redintial and employment
         // at least 5 documents aadhar , pan , selfie , bankstatment, cibil score
 
-        if(user.gender == null || user.dob == null || user.employmentType == null || user.companyName == null || user.netMonthlyIncome == null || user.nextIncomeDate == null) {
+        if (user.gender == null || user.dob == null || user.employmentType == null || user.companyName == null || user.netMonthlyIncome == null || user.nextIncomeDate == null) {
             const missingFields = [];
             if (user.gender == null) missingFields.push('gender');
             if (user.dob == null) missingFields.push('dob');
@@ -112,7 +112,7 @@ export class UserService {
             });
         }
 
-        return { 
+        return {
             kycstatus: user.kycStatus,
             isVerified: user.isVerified,
             profileStatus
@@ -127,7 +127,7 @@ export class UserService {
     }
 
 
-    async kycstatus(userId) {  
+    async kycstatus(userId) {
         const user = await Prisma.user.findUnique({
             where: { id: userId },
             select: { kycStatus: true }
@@ -135,11 +135,35 @@ export class UserService {
 
         return user.kycStatus;
     }
-    
+
     async updateKycStatus(userId, status) {
         return await Prisma.user.update({
             where: { id: userId },
             data: { kycStatus: status }
         });
+    }
+
+
+    async getUserDashboardStats(userId) {
+        const loans = await Prisma.loan.findMany({
+            where: {
+                userId,
+                status: { not: 'closed' }
+
+            },
+            select: {
+                id: true,
+                loanNumber: true,
+                intrestRate: true,
+                totalAmountPayable: true,
+                status: true,
+                startDate: true,
+                endDate: true,
+                remainingAmount: true,
+                createdAt: true
+            }
+        })
+
+        return loans;
     }
 }

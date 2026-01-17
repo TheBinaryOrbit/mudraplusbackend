@@ -259,5 +259,18 @@ export class UserController {
         }
     }
 
+
+    getDashboardStats = async (req, res) => {
+        try {
+            const user = req.user;
+            const stats = await this.userService.getUserDashboardStats(user.id);
+            const totalborrowedAmount = stats.reduce((sum, loan) => sum + loan.totalAmountPayable , 0);
+            
+            res.status(200).json({totalborrowedAmount , stats});
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to fetch dashboard stats', message: error.message });
+        }
+    }
+
 }
 
