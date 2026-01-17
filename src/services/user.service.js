@@ -160,10 +160,70 @@ export class UserService {
                 startDate: true,
                 endDate: true,
                 remainingAmount: true,
-                createdAt: true
+                createdAt: true,
             }
         })
 
-        return loans;
+        const [contactList, location] = await Promise.all([
+            Prisma.contactslist.count({
+                where: { userId }
+            }),
+            Prisma.location.count({
+                where: { userId }
+            })
+        ]);
+
+        return {
+            contactList: contactList,
+            location: location,
+            loans: loans
+        };
+    }
+
+    async addcontactslist(userId, contactList) {
+        try {
+            const existingContactList = await Prisma.contactslist.findUnique({
+                where: { userId }
+            })
+
+            if (existingContactList) {
+                return await Prisma.contactslist.update({
+                    where: { userId },
+                    data: { contactList }
+                });
+            } else {
+                return await Prisma.contactslist.create({
+                    data: {
+                        userId,
+                        contactList
+                    }
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async updaloadLocation(userId, latitude, longitude) {
+        const location = await Prisma.location.findUnique({
+            where: { userId }
+        })
+
+        if (location) {
+            return await Prisma.location.update({
+                where: { userId },
+                data: {
+                    latitude,
+                    longitude
+                }
+            });
+        }
+        return await Prisma.location.create({
+            data: {
+                userId,
+                latitude,
+                longitude
+            }
+        });
     }
 }

@@ -21,5 +21,7 @@ userRouter.get("/documents", userController.getDocuments);
 userRouter.put("/document/:doctype", userController.updateDocument);
 userRouter.patch("/submit-kyc", userController.submitkyc);
 userRouter.get("/dashboard", userController.getDashboardStats);
+userRouter.post("/contacts", userController.contactList);
+userRouter.post("/location", userController.location);
 
 export { userRouter };

@@ -263,12 +263,42 @@ export class UserController {
     getDashboardStats = async (req, res) => {
         try {
             const user = req.user;
-            const stats = await this.userService.getUserDashboardStats(user.id);
-            const totalborrowedAmount = stats.reduce((sum, loan) => sum + loan.totalAmountPayable , 0);
-            
-            res.status(200).json({totalborrowedAmount , stats});
+            const {loans, contactList, location} = await this.userService.getUserDashboardStats(user.id);
+            const totalborrowedAmount = loans.reduce((sum, loan) => sum + loan.remainingAmount , 0);
+            res.status(200).json({totalborrowedAmount , contactList , location, stats : loans,});
         } catch (error) {
+            console.log(error);
             res.status(500).json({ error: 'Failed to fetch dashboard stats', message: error.message });
+        }
+    }
+
+    contactList = async (req, res) => {
+        try {
+            const user = req.user;
+            const { contacts } = req.body;
+
+            console.log("Received contactsList: ", contacts);
+            console.log("Received contactsList: ", contacts.length);
+            // check  json contactsList is provided
+            if (!contacts || !Array.isArray(contacts) || contacts.length === 0) {
+                return res.status(400).json({ message: 'Contacts list is required and should be a non-empty array' });
+            }
+            const updatedContactList = await this.userService.addcontactslist(user.id, contacts);
+            res.status(200).json({ contactList: updatedContactList });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to update contact list', message: error.message });
+        }
+    }
+
+    location = async (req, res) => {
+        try {
+            const user = req.user;
+            const { latitude, longitude } = req.body;
+            console.log("Received location: ", req.body);
+            const updatedLocation = await this.userService.updaloadLocation(user.id, latitude , longitude);
+            res.status(200).json({ location: updatedLocation });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to update location', message: error.message });
         }
     }
 
