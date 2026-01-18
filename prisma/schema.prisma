@@ -33,20 +33,24 @@ model User {
 
     isVerified     Boolean   @default(false)
     isBlocked      Boolean   @default(false)
-    kycCompletedAt DateTime?
+    kycExpireAt DateTime?
     kycStatus      kycStatus @default(pending)
 
     addresses   Address[]
     bankDetails BankDetails[]
 
-    documents  Document[]
-    loans      loan[]
-    transactions  transaction[]
+    documents    Document[]
+    loans        loan[]
+    transactions transaction[]
 
     contactslist contactslist?
     location     location?
 
     events event[]
+
+    agentUsers AgentUser[]
+    followUps followUp[]
+
     @@map("users")
 }
 
@@ -124,9 +128,8 @@ model loan {
 
     totalAmountPayable Float?
 
-
     // penelty
-    penaltyAmount      Float? @default(0)
+    penaltyAmount Float? @default(0)
 
     status loanStatus @default(requested)
 
@@ -143,7 +146,8 @@ model loan {
     user User        @relation(fields: [userId], references: [id])
     bank BankDetails @relation(fields: [bankId], references: [id])
 
-    transactions  transaction[]
+    transactions transaction[]
+    followUps    followUp[]
 
     @@map("loans")
 }
@@ -209,13 +213,73 @@ model event {
     isRead Boolean @default(false)
     route  String?
     params Json?
-    
+
     user User @relation(fields: [userId], references: [id])
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@map("events")
+}
+
+model Admin {
+    id       Int    @id @default(autoincrement())
+    name     String
+    phone    String @unique
+    email    String @unique
+    password String
+
+    role AdminRole
+
+    isDeleted Boolean @default(false)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    agents AgentUser[]
+    followUps followUp[]
+
+    @@map("admins")
+
+}
+
+
+model AgentUser{
+    id       Int    @id @default(autoincrement())
+
+    agentId  Int
+    userId   Int
+
+    agent Admin @relation(fields: [agentId], references: [id])
+    user  User  @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("agent_users")
+}
+
+model followUp{
+    id       Int    @id @default(autoincrement())
+
+
+    agentUserId  Int
+    userId   Int
+    loanId   Int
+
+    note     String
+    followUpDate DateTime
+    nextFollowUpDate DateTime?
+    followUpType followUpType
+
+    agentUser Admin @relation(fields: [agentUserId], references: [id])
+    user  User  @relation(fields: [userId], references: [id])
+    loan  loan  @relation(fields: [loanId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("follow_ups")
 }
 
 // ======================= Enums ================================= //
@@ -276,4 +340,17 @@ enum transactionType {
 enum eventType {
     notification
     activity
+}
+
+enum AdminRole {
+    admin
+    agent
+}
+
+
+enum followUpType {
+    call
+    sms
+    email
+    fieldVisit
 }

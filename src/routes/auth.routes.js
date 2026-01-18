@@ -9,5 +9,6 @@ const authMiddleware = new AuthMiddleware();
 authRouter.post("/login", authController.login);
 
 authRouter.post("/logout", authMiddleware.verifyToken, authController.logout);
+authRouter.post("/adminlogin", authController.adminLogin);
 
 export { authRouter };

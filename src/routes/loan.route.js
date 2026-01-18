@@ -14,8 +14,4 @@ loanRouter.get("/:id", authMiddleware.verifyToken ,loanController.getLoanById);
 loanRouter.get("/", authMiddleware.verifyToken ,loanController.getLoansByUserId);
 
 
-
-loanRouter.patch("/review/:id", loanController.reviewLoan); // admin
-loanRouter.patch("/approve/:id", loanController.approveLoan); // admin
-
 export { loanRouter };

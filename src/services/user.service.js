@@ -1,7 +1,7 @@
 
 import Prisma from "../config/prismaClient.js";
 import { hashPassword } from "../utils/password.utils.js";
-
+import getUserDetailsWRTFilter from "../utils/filter.utils.js";
 export class UserService {
 
     async createUser(userData) {
@@ -137,9 +137,21 @@ export class UserService {
     }
 
     async updateKycStatus(userId, status) {
+
+        const data = {
+            kycStatus: status
+        }
+
+        if (status === 'verified') {
+            data.isVerified = true;
+            const date = new Date();
+            date.setMonth(date.getMonth() + 3);
+            data.kycExpireAt = date;
+        }
+
         return await Prisma.user.update({
             where: { id: userId },
-            data: { kycStatus: status }
+            data: data
         });
     }
 
@@ -225,5 +237,109 @@ export class UserService {
                 longitude
             }
         });
+    }
+
+
+    // admin user list
+    async getAllUsers(where) {
+        try {
+            const users = await Prisma.user.findMany({
+                where: {
+                    ...where,
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    phone: true,
+                    employmentType: true,
+                    companyName: true,
+                    createdAt: true,
+                    isVerified: true,
+                    kycStatus: true,
+                }
+            });
+            return users;
+        } catch (error) {
+            console.error(error);
+            throw new Error('Error fetching users from the database');
+        }
+    }
+
+    // agent 
+    async getUsersByAgentId(agentId) {
+        return await Prisma.agentUser.findMany({
+            where: {
+                agentId: agentId
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        name: true,
+                        phone: true,
+                        employmentType: true,
+                        companyName: true,
+                        createdAt: true,
+                        isVerified: true,
+                        kycStatus: true,
+                    },
+                }
+            }
+        });
+    }
+
+
+
+
+    async blockUser(userId) {
+        try {
+            await Prisma.user.update({
+                where: { id: userId },
+                data: { isBlocked: true }
+            });
+            return { message: 'User blocked successfully' };
+        } catch (error) {
+            throw new Error('Error blocking user in the database');
+        }
+    }
+
+    async restoreUser(userId) {
+        try {
+            await Prisma.user.update({
+                where: { id: userId },
+                data: { isBlocked: false }
+            });
+            return { message: 'User restored successfully' };
+        } catch (error) {
+            throw new Error('Error restoring user in the database');
+        }
+    }
+
+
+    async getUserById(userId) {
+        try {
+            const user = await Prisma.user.findUnique({
+                where: { id: userId }
+            });
+            return user;
+        } catch (error) {
+            throw new Error('Error fetching user from the database');
+        }
+    }
+
+    async getSpecficUser(userId, field) {
+        const include = getUserDetailsWRTFilter(field);
+        try {
+            const user = await Prisma.user.findUnique({
+                where: { id: userId },
+                include: include
+            });
+            return user;
+        } catch (error) {
+            console.error(error);
+            throw new Error('Error fetching user from the database');
+        }
     }
 }

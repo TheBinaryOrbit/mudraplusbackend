@@ -84,4 +84,8 @@ export class LoanService {
             }
         });
     }
+
+    async getAllLoans() {
+        return await Prisma.loan.findMany({});
+    }
 }

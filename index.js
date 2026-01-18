@@ -12,7 +12,7 @@ import { addressRouter } from './src/routes/address.routes.js';
 import { loanRouter } from './src/routes/loan.route.js';
 import { transactionRouter } from './src/routes/transaction.router.js';
 import { notificationRouter } from './src/routes/nofification.routes.js';
-
+import { adminRouter } from './src/routes/admin.routes.js';
 
 // Initialize Express app
 const app = express();
@@ -60,6 +60,9 @@ app.use('/api/v1/address', addressRouter);
 app.use('/api/v1/loan', loanRouter);
 app.use('/api/v1/transaction', transactionRouter);
 app.use('/api/v1/notification', notificationRouter);
+app.use('/api/v1/admin', adminRouter);
+
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
