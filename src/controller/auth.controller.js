@@ -1,10 +1,12 @@
 import { AuthService } from "../services/auth.service.js";
 import { UserService } from "../services/user.service.js";
+import { EventService } from "../services/event.service.js";
 
 export class AuthController {
     constructor() {
         this.authService = new AuthService();
         this.userService = new UserService();
+        this.eventService = new EventService();
     }
 
     login = async (req, res) => {
@@ -36,6 +38,13 @@ export class AuthController {
                 name: user.name,
                 phone: user.phone
             }
+
+            // Send login notification event
+            await this.eventService.createEvent(user.id, 'notification', {
+                title: 'Login Successful',
+                message: `You have successfully logged in on ${new Date().toLocaleString()}. If this wasn't you, please secure your account immediately.`
+            });
+            
             res.status(200).json(
                 { user: userResponse, token }
             );
