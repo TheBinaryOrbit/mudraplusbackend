@@ -56,10 +56,11 @@ export class AuthController {
 
 
     logout = async (req, res) => {
-        // For JWT, logout can be handled on the client side by deleting the token.
-        // Optionally, you can implement token blacklisting on the server side.
         const user = req.user; // from auth middleware
-        console.log(`User ${user.id} logged out.`);
+        await this.eventService.createEvent(user.id, 'notification', {
+                title: 'Logout Successful',
+                message: `You have successfully logged out on ${new Date().toLocaleString()}. If this wasn't you, please secure your account immediately.`
+        });
         res.status(200).json({ message: 'Logout successful' });
     }
 

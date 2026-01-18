@@ -1,11 +1,15 @@
 import { AddressService } from "../services/address.service.js";
 import { DocumentService } from "../services/document.service.js";
 import { UserService } from "../services/user.service.js";
+import { EventService } from "../services/event.service.js";
+
+
 export class AddressController {
     constructor() {
         this.addressService = new AddressService();
         this.documentService = new DocumentService();
         this.userService = new UserService();
+        this.eventService = new EventService();
     }
 
     addAddress = async (req, res) => {
@@ -38,7 +42,14 @@ export class AddressController {
                 file ? this.documentService.uploadDocument(user.id , file.fieldname , file.filename) : null
             ]);
 
-            res.status(201).json(newaddress);
+            // activity log
+            await this.eventService.createEvent(user.id, 'activity' , {
+                title: 'New Address Added',
+                message: `You have successfully added a new ${addressData.addressType} address on ${new Date().toLocaleString()}`
+            });
+
+            return res.status(201).json(newaddress);
+            
         }
         catch (error) {
             console.log(error);
@@ -78,7 +89,14 @@ export class AddressController {
                 this.addressService.updateAddress(user.id, addressId, updateData),
                 file ? this.documentService.updateDocument(user.id , file.fieldname , file.filename) : null
             ]);
-            res.status(200).json(updatedAddress);
+
+            // activity log
+            await this.eventService.createEvent(user.id, 'activity' , {
+                title: 'Address Updated',
+                message: `You have successfully updated a ${updateData.addressType} address on ${new Date().toLocaleString()}`
+            });
+
+            return res.status(200).json(updatedAddress);
         }
         catch (error) {
             console.log("Error updating address: ", error);

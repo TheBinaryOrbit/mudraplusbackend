@@ -1,10 +1,11 @@
 import { LoanService } from "../services/loan.service.js";
 import { TransactionService } from "../services/transaction.service.js";
-
+import { EventService } from "../services/event.service.js";
 export class LoanController {
     constructor() {
         this.loanService = new LoanService();
         this.transactionService = new TransactionService();
+        this.eventService = new EventService();
     }
 
     createLoan = async (req, res) => {
@@ -21,6 +22,12 @@ export class LoanController {
 
         try {
             const newLoan = await this.loanService.createLoan(user.id, loanData);
+            // activity log
+            await this.eventService.createEvent(user.id, 'notification' , {
+                title: 'New Loan Requested Created',
+                message: `You have successfully created a new loan request of amount ${loanData.requestedAmount} for tenure ${loanData.requestedTenure} days on ${new Date().toLocaleString()}`
+            });
+
             res.status(201).json({
                 message: 'Loan created successfully',
                 loan: newLoan
@@ -67,6 +74,12 @@ export class LoanController {
             }
 
             const updatedLoan = await this.loanService.adminUpdateLoan(parseInt(loanId), payload);
+            // activity log
+            await this.eventService.createEvent(user.id, 'notification' , {
+                title: 'Loan Requested Created Reviewed and Approved',
+                message: `Your loan request of amount ${loanData.principalAmount} for tenure ${loanData.tenure} is approved on ${new Date().toLocaleString()}`
+            });
+
             res.status(200).json({
                 message: 'Loan reviewed successfully',
                 loan: updatedLoan
@@ -85,6 +98,13 @@ export class LoanController {
                 status: 'applied',
             }
             const updatedLoan = await this.loanService.userUpdateLoan(parseInt(loanId), payload, user.id);
+
+            // activity log
+            await this.eventService.createEvent(user.id, 'notification' , {
+                title: 'Loan Requested Applied',
+                message: `You have successfully applied for the  Loan : ${updatedLoan.loanNumber} request on ${new Date().toLocaleString()}`
+            });
+
             res.status(200).json({
                 message: 'Loan requested successfully',
                 loan: updatedLoan
@@ -122,6 +142,13 @@ export class LoanController {
                 this.loanService.adminUpdateLoan(parseInt(loanId), payload),
                 this.transactionService.createTranscation(transactionData)
             ]);
+
+            // activity log
+            await this.eventService.createEvent(loan.userId, 'notification' , {
+                title: 'Loan Approved and Disbursed',
+                message: `Your loan : ${loan.loanNumber} has been approved and disbursed on ${new Date().toLocaleString()}`
+            });
+
             res.status(200).json({
                 message: 'Loan approved successfully',
                 loan: updatedLoan
@@ -143,6 +170,13 @@ export class LoanController {
                 status: status,
             }
             const updatedLoan = await this.loanService.adminUpdateLoan(loanId, payload);
+
+            // activity log
+            await this.eventService.createEvent(updatedLoan.userId, 'notification' , {
+                title: 'Loan Status Updated',
+                message: `The status of your loan : ${updatedLoan.loanNumber} has been changed to ${status} on ${new Date().toLocaleString()}`
+            });
+            
             res.status(200).json({
                 message: 'Loan status updated successfully',
                 loan: updatedLoan

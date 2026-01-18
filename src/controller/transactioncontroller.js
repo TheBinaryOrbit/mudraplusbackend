@@ -1,10 +1,12 @@
 import { TransactionService } from "../services/transaction.service.js";
 import { LoanService } from "../services/loan.service.js";
+import { EventService } from "../services/event.service.js";
 
 export class TransactionController {
     constructor() {
         this.transactionService = new TransactionService();
         this.loanService = new LoanService();
+        this.eventService = new EventService();
     }
 
     createOrder = async (req, res) => {
@@ -15,6 +17,13 @@ export class TransactionController {
 
         try {
             const order = await this.transactionService.createOrder(amount, currency, receipt);
+
+            // activity log
+            await this.eventService.createEvent(req.user.id, 'activity' , {
+                title: 'Order Created',
+                message: `A new order with amount ${amount} has been created on ${new Date().toLocaleString()}`
+            });
+            
             res.status(201).json(order);
         } catch (error) {
             console.error(error);
@@ -68,6 +77,12 @@ export class TransactionController {
             }
 
             await this.loanService.userUpdateLoan(loan.id, payload);
+
+            // activity log
+            await this.eventService.createEvent(user.id, 'notification' , {
+                title: 'Payment Successful',
+                message: `Your payment of amount ${newTransaction.amount} for loan ID ${loan.id} has been successfully processed on ${new Date().toLocaleString()}.`
+            });
 
             res.status(201).json({
                 message: 'Transaction created successfully',

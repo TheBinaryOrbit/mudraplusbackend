@@ -1,12 +1,13 @@
 import { UserService } from "../services/user.service.js";
 import { DocumentService } from "../services/document.service.js";
 import { upload } from "../config/multerConfig.js";
-
+import { EventService } from "../services/event.service.js";
 
 export class UserController {
     constructor() {
         this.userService = new UserService();
         this.documentService = new DocumentService();
+        this.eventService = new EventService();
     }
 
     registerUser = async (req, res) => {
@@ -37,6 +38,11 @@ export class UserController {
             userData.password = hashedPassword;
 
             const newUser = await this.userService.createUser(userData);
+            // activity log
+            await this.eventService.createEvent(newUser.id, 'notification', {
+                title: 'User Registered',
+                message: `A new user with email ${newUser.email} has registered on ${new Date().toLocaleString()}`
+            });
             res.status(201).json(newUser);
 
         } catch (error) {
@@ -49,7 +55,7 @@ export class UserController {
         try {
             const user = req.user; // from auth middleware
             const { kycstatus, isVerified, profileStatus } = await this.userService.getUserProfileStatus(user.id);
-            
+
             res.status(200).json({ isCompleted: profileStatus.length === 0, kycstatus, isVerified, profileStatus });
         } catch (error) {
             console.log(error);
@@ -106,6 +112,12 @@ export class UserController {
 
 
             const updatedUser = await this.userService.updateUser(user.id, payload);
+
+            // activity log
+            await this.eventService.createEvent(user.id, 'activity', {
+                title: 'Profile Updated',
+                message: `successfully updated your profile on ${new Date().toLocaleString()}`
+            });
             res.status(200).json({ user: updatedUser });
         }
         catch (error) {
@@ -118,7 +130,7 @@ export class UserController {
         try {
             const user = req.user;
             const documentData = req.body;
-            const {doctype} = req.params;
+            const { doctype } = req.params;
 
 
             if (!doctype || doctype.trim() === "") {
@@ -155,6 +167,12 @@ export class UserController {
                             doctype,
                             file.filename
                         );
+
+                    /// activity log
+                    await this.eventService.createEvent(user.id, 'activity', {
+                        title: 'Document Uploaded',
+                        message: `${doctype} uploaded on ${new Date().toLocaleString()}`
+                    });
 
                     return res.status(201).json({
                         message: "Document uploaded successfully",
@@ -193,7 +211,7 @@ export class UserController {
     updateDocument = async (req, res) => {
         try {
             const user = req.user;
-            const {doctype} = req.params;
+            const { doctype } = req.params;
 
             if (!doctype || doctype.trim() === "") {
                 return res.status(400).json({
@@ -227,6 +245,12 @@ export class UserController {
                             file.filename
                         );
 
+                        /// activity log
+                    await this.eventService.createEvent(user.id, 'activity', {
+                        title: 'Document Updated',
+                        message: `${doctype} updated on ${new Date().toLocaleString()}`
+                    });
+
                     return res.status(201).json({
                         message: "Document updated successfully",
                         data: documentRecord,
@@ -252,6 +276,13 @@ export class UserController {
         try {
             const user = req.user;
             const updatedUser = await this.userService.updateKycStatus(user.id, 'submitted');
+
+            // activity log
+            await this.eventService.createEvent(user.id, 'notification', {
+                title: 'KYC Submitted',
+                message: `You have successfully submitted your KYC on ${new Date().toLocaleString()}`
+            });
+
             res.status(200).json({ user: updatedUser });
         }
         catch (error) {
@@ -263,9 +294,9 @@ export class UserController {
     getDashboardStats = async (req, res) => {
         try {
             const user = req.user;
-            const {loans, contactList, location} = await this.userService.getUserDashboardStats(user.id);
-            const totalborrowedAmount = loans.reduce((sum, loan) => sum + loan.remainingAmount , 0);
-            res.status(200).json({totalborrowedAmount , contactList , location, stats : loans,});
+            const { loans, contactList, location } = await this.userService.getUserDashboardStats(user.id);
+            const totalborrowedAmount = loans.reduce((sum, loan) => sum + loan.remainingAmount, 0);
+            res.status(200).json({ totalborrowedAmount, contactList, location, stats: loans, });
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: 'Failed to fetch dashboard stats', message: error.message });
@@ -284,6 +315,13 @@ export class UserController {
                 return res.status(400).json({ message: 'Contacts list is required and should be a non-empty array' });
             }
             const updatedContactList = await this.userService.addcontactslist(user.id, contacts);
+
+            // activity log
+            await this.eventService.createEvent(user.id, 'activity', {
+                title: 'Contact List Updated',
+                message: `Contact list successfully updated on ${new Date().toLocaleString()}`
+            });
+
             res.status(200).json({ contactList: updatedContactList });
         } catch (error) {
             res.status(500).json({ error: 'Failed to update contact list', message: error.message });
@@ -295,7 +333,8 @@ export class UserController {
             const user = req.user;
             const { latitude, longitude } = req.body;
             console.log("Received location: ", req.body);
-            const updatedLocation = await this.userService.updaloadLocation(user.id, latitude , longitude);
+            const updatedLocation = await this.userService.updaloadLocation(user.id, latitude, longitude);
+
             res.status(200).json({ location: updatedLocation });
         } catch (error) {
             res.status(500).json({ error: 'Failed to update location', message: error.message });
