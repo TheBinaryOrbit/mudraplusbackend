@@ -31,7 +31,7 @@ export class AuthController {
                 return res.status(401).json({ message : 'Invalid password' });
             }
 
-            const token = this.authService.generateToken(user);
+            const token = this.authService.generateToken({ id: user.id, email: user.email, phone: user.phone , name: user.name });
             const userResponse = {
                 id: user.id,
                 email: user.email,

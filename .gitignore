@@ -28,4 +28,6 @@ build/
 # Prisma
 prisma/migrations/
 
+
+# Uploaded files
 uploads/

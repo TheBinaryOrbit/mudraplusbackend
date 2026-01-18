@@ -335,6 +335,11 @@ export class UserController {
             console.log("Received location: ", req.body);
             const updatedLocation = await this.userService.updaloadLocation(user.id, latitude, longitude);
 
+            // location activity log
+            await this.eventService.createEvent(user.id, 'activity', {
+                title: 'Location Updated',
+                message: `Location successfully updated on ${new Date().toLocaleString()} || Latitude: ${latitude}, Longitude: ${longitude}`
+            });
             res.status(200).json({ location: updatedLocation });
         } catch (error) {
             res.status(500).json({ error: 'Failed to update location', message: error.message });
