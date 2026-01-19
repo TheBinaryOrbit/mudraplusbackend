@@ -42,6 +42,7 @@ const getUserDetailsWRTFilter = (field) => {
             }
             break;
         case 'activity':
+            include.location = true;
             include.events = {
                 select: {
                     id: true,
@@ -53,7 +54,6 @@ const getUserDetailsWRTFilter = (field) => {
             }
             break;
         case 'transactions':
-            include.location = true;
             include.transactions = {
                 select: {
                     id: true,
