@@ -61,7 +61,7 @@ export class AuthController {
         const user = req.user; // from auth middleware
         await this.eventService.createEvent(user.id, 'notification', {
                 title: 'Logout Successful',
-                message: `You have successfully logged out on ${new Date().toLocaleString()}. If this wasn't you, please secure your account immediately.`
+                message: `You have successfully logged out on ${new Date().toLocaleString()}.`
         });
         res.status(200).json({ message: 'Logout successful' });
     }
