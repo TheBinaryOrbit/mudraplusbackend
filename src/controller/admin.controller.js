@@ -57,11 +57,21 @@ export class AdminController {
 
     getAllAdmins = async (req, res) => {
         const admin = req.admin;
+        const type = req.query.type;
+
+
         if (admin.role !== 'admin') {
             return res.status(403).json({ error: 'Only superadmin can access all admins' });
         }
+
+        const where = {};
+        if(type === 'agent'){
+            where.role = 'agent';
+        }
+
+        
         try {
-            const admins = await this.adminService.getAllAdmins();
+            const admins =  await this.adminService.getAllAdmins(where);
             res.status(200).json(admins);
         }
         catch (error) {

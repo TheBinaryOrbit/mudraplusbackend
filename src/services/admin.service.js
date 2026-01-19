@@ -28,9 +28,9 @@ export class AdminService {
         });
     }
 
-    async getAllAdmins() {
+    async getAllAdmins(where) {
         return await Prisma.admin.findMany({
-            where: { isDeleted: false }
+            where: { ...where, isDeleted: false }
         });
     }
 
