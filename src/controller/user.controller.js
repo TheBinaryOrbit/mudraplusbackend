@@ -2,12 +2,14 @@ import { UserService } from "../services/user.service.js";
 import { DocumentService } from "../services/document.service.js";
 import { upload } from "../config/multerConfig.js";
 import { EventService } from "../services/event.service.js";
+import { RefrenceContactService } from "../services/refrencecontact.service.js";
 
 export class UserController {
     constructor() {
         this.userService = new UserService();
         this.documentService = new DocumentService();
         this.eventService = new EventService();
+        this.refrenceContactService = new RefrenceContactService(); 
     }
 
     registerUser = async (req, res) => {
@@ -86,7 +88,7 @@ export class UserController {
             const updateData = req.body;
 
             // validate 
-            if (!updateData.name && !updateData.gender && !updateData.dob && !updateData.employmentType && !updateData.companyName && !updateData.netMonthlyIncome && !updateData.nextIncomeDate) {
+            if (!updateData.name || !updateData.gender || !updateData.dob || !updateData.employmentType || !updateData.companyName || !updateData.netMonthlyIncome || !updateData.nextIncomeDate || !updateData.referencePerson1 || !updateData.referencePerson2) {
                 const errors = [];
                 if (!updateData.name) errors.push({ field: "name", message: "Name is required" });
                 if (!updateData.gender) errors.push({ field: "gender", message: "Gender is required" });
@@ -95,6 +97,9 @@ export class UserController {
                 if (!updateData.companyName) errors.push({ field: "companyName", message: "Company Name is required" });
                 if (!updateData.netMonthlyIncome) errors.push({ field: "netMonthlyIncome", message: "Net Monthly Income is required" });
                 if (!updateData.nextIncomeDate) errors.push({ field: "nextIncomeDate", message: "Next Income Date is required" });
+                if (!updateData.referencePerson1) errors.push({ field: "referencePerson1", message: "Reference Person 1 is required" });
+                if (!updateData.referencePerson2) errors.push({ field: "referencePerson2", message: "Reference Person 2 is required" });
+
                 return res.status(400).json({ message: 'At least one field is required to update', errors });
             }
 
@@ -111,16 +116,20 @@ export class UserController {
             if (updateData.nextIncomeDate) payload.nextIncomeDate = updateData.nextIncomeDate;
 
 
-            const updatedUser = await this.userService.updateUser(user.id, payload);
+            const [ updatedUser , referencecontacts ] = await Promise.all([
+                this.userService.updateUser(user.id, payload),
+                this.refrenceContactService.createRefrenceContact(user.id, updateData.referencePerson1, updateData.referencePerson2)
+            ]);
 
             // activity log
             await this.eventService.createEvent(user.id, 'activity', {
                 title: 'Profile Updated',
                 message: `successfully updated your profile on ${new Date().toLocaleString()}`
             });
-            res.status(200).json({ user: updatedUser });
+            res.status(200).json({ user: updatedUser, referencecontacts });
         }
         catch (error) {
+            console.log(error);
             res.status(500).json({ error: 'Failed to update profile', message: error.message });
         }
     }

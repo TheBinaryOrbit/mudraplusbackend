@@ -31,10 +31,10 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    isVerified     Boolean   @default(false)
-    isBlocked      Boolean   @default(false)
+    isVerified  Boolean   @default(false)
+    isBlocked   Boolean   @default(false)
     kycExpireAt DateTime?
-    kycStatus      kycStatus @default(pending)
+    kycStatus   kycStatus @default(pending)
 
     addresses   Address[]
     bankDetails BankDetails[]
@@ -48,8 +48,9 @@ model User {
 
     events event[]
 
-    agentUsers AgentUser[]
-    followUps followUp[]
+    agentUsers         AgentUser[]
+    followUps          followUp[]
+    referencesContacts referencesContact[]
 
     @@map("users")
 }
@@ -109,6 +110,22 @@ model Document {
     @@map("documents")
 }
 
+model referencesContact {
+    id     Int @id @default(autoincrement())
+    userId Int
+
+    name     String
+    phone    String
+    relation String
+
+    user User @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("references_contacts")
+}
+
 model loan {
     id         Int    @id @default(autoincrement())
     userId     Int
@@ -132,6 +149,9 @@ model loan {
     penaltyAmount Float? @default(0)
 
     status loanStatus @default(requested)
+
+
+    expiryDate DateTime?
 
     // date 
     startDate DateTime?
@@ -236,19 +256,17 @@ model Admin {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    agents AgentUser[]
+    agents    AgentUser[]
     followUps followUp[]
 
     @@map("admins")
-
 }
 
+model AgentUser {
+    id Int @id @default(autoincrement())
 
-model AgentUser{
-    id       Int    @id @default(autoincrement())
-
-    agentId  Int
-    userId   Int
+    agentId Int
+    userId  Int
 
     agent Admin @relation(fields: [agentId], references: [id])
     user  User  @relation(fields: [userId], references: [id])
@@ -259,22 +277,21 @@ model AgentUser{
     @@map("agent_users")
 }
 
-model followUp{
-    id       Int    @id @default(autoincrement())
+model followUp {
+    id Int @id @default(autoincrement())
 
+    agentUserId Int
+    userId      Int
+    loanId      Int
 
-    agentUserId  Int
-    userId   Int
-    loanId   Int
-
-    note     String
-    followUpDate DateTime
+    note             String
+    followUpDate     DateTime
     nextFollowUpDate DateTime?
-    followUpType followUpType
+    followUpType     followUpType
 
     agentUser Admin @relation(fields: [agentUserId], references: [id])
-    user  User  @relation(fields: [userId], references: [id])
-    loan  loan  @relation(fields: [loanId], references: [id])
+    user      User  @relation(fields: [userId], references: [id])
+    loan      loan  @relation(fields: [loanId], references: [id])
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -346,7 +363,6 @@ enum AdminRole {
     admin
     agent
 }
-
 
 enum followUpType {
     call

@@ -17,7 +17,17 @@ export class UserService {
 
     async getUserByEmail(email) {
         return await Prisma.user.findUnique({
-            where: { email }
+            where: { email },
+            include : {
+                referencesContacts : {
+                    select :{
+                        id : true,
+                        name : true,
+                        relation : true,
+                        phone : true,
+                    }
+                }
+            }
         });
     }
 
@@ -93,11 +103,8 @@ export class UserService {
 
         if (user.documents.filter(doc => doc.documentType == 'employmentAddressProof' || doc.documentType == 'residentialAddressProof').length < 5) {
             const requiredDocs = [
-                { type: 'aadhar', message: 'Aadhar card not uploaded' },
-                { type: 'pan', message: 'PAN card not uploaded' },
-                { type: 'selfie', message: 'Selfie not uploaded' },
-                { type: 'bankStatement', message: 'Bank statement not uploaded' },
-                { type: 'cibilScore', message: 'CIBIL score not uploaded' }
+                { type: 'documents', message: 'Aadhar card , Pan card , Selfie, Bank statement are required' },  
+                { type: 'CIBIL Score', message: 'Update your latest CIBIL score' },  
             ];
 
             // 1. Get a simple list of document types the user actually has
@@ -108,9 +115,20 @@ export class UserService {
 
             // 3. Add only the missing ones to your status
             missingDocs.forEach(missing => {
-                profileStatus.push({ section: 'documents', message: missing.message });
+                if(missing.type === 'documents') {
+                    profileStatus.push({
+                        section: missing.type,
+                        message: missing.message
+                    });
+                }else{
+                    profileStatus.push({
+                        section: "Cibil Score",
+                        message: missing.message
+                    });
+                }
             });
         }
+        
 
         return {
             kycstatus: user.kycStatus,
@@ -198,6 +216,9 @@ export class UserService {
                 where: { userId }
             })
 
+            console.log("Updating contact list for userId:", userId);
+        
+
             if (existingContactList) {
                 return await Prisma.contactslist.update({
                     where: { userId },
@@ -210,6 +231,8 @@ export class UserService {
                         contactList
                     }
                 });
+
+
             }
         } catch (error) {
             console.log(error);

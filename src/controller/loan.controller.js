@@ -48,13 +48,14 @@ export class LoanController {
 
             const errors = [];
 
-            if (!loanData.principalAmount || !loanData.tenure || !loanData.intrestType || !loanData.intrestRate || !loanData.totalIntrest || !loanData.totalAmountPayable) {
+            if (!loanData.principalAmount || !loanData.tenure || !loanData.intrestType || !loanData.intrestRate || !loanData.totalIntrest || !loanData.totalAmountPayable || !loanData.expiryDays) {
                 if (!loanData.principalAmount) errors.push({ field: "principalAmount", message: "Principal amount is required" });
                 if (!loanData.tenure) errors.push({ field: "tenure", message: "Tenure is required" });
                 if (!loanData.intrestType) errors.push({ field: "intrestType", message: "Intrest type is required" });
                 if (!loanData.intrestRate) errors.push({ field: "intrestRate", message: "Intrest rate is required" });
                 if (!loanData.totalIntrest) errors.push({ field: "totalIntrest", message: "Total intrest is required" });
                 if (!loanData.totalAmountPayable) errors.push({ field: "totalAmountPayable", message: "Total amount payable is required" });
+                if (!loanData.expiryDays) errors.push({ field: "expiryDays", message: "Expiry days is required" });
                 return res.status(400).json({ message: 'Validation errors', errors });
             }
 
@@ -70,12 +71,13 @@ export class LoanController {
                 intrestRate: loanData.intrestRate,
                 totalIntrest: loanData.totalIntrest,
                 totalAmountPayable: loanData.totalAmountPayable,
+                expiryDate: new Date(new Date().getTime() + (loanData.expiryDays * 24 * 60 * 60 * 1000)),
                 status: 'approved'
             }
 
             const updatedLoan = await this.loanService.adminUpdateLoan(parseInt(loanId), payload);
             // activity log
-            await this.eventService.createEvent(user.id, 'notification' , {
+            await this.eventService.createEvent(updatedLoan.userId, 'notification' , {
                 title: 'Loan Requested Created Reviewed and Approved',
                 message: `Your loan request of amount ${loanData.principalAmount} for tenure ${loanData.tenure} is approved on ${new Date().toLocaleString()}`
             });
@@ -85,6 +87,7 @@ export class LoanController {
                 loan: updatedLoan
             });
         } catch (error) {
+            console.error(error);
             res.status(500).json({ error: 'Failed to review loan' });
         }
     }

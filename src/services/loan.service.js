@@ -64,6 +64,7 @@ export class LoanService {
             select: {
                 id: true,
                 loanNumber: true,
+                expiryDate : true,
                 bank: {
                     select: {
                         id: true,
