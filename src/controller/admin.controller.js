@@ -4,6 +4,7 @@ import { AuthService } from "../services/auth.service.js";
 import { UserService } from "../services/user.service.js";
 import { EventService } from "../services/event.service.js";
 import { LoanService } from "../services/loan.service.js";
+import { FollowupService } from "../services/followup.service.js";
 
 export class AdminController {
     constructor() {
@@ -12,6 +13,7 @@ export class AdminController {
         this.userService = new UserService();
         this.eventService = new EventService();
         this.loanService = new LoanService();
+        this.followupService = new FollowupService();
     }
 
     createAdmin = async (req, res) => {
@@ -256,4 +258,47 @@ export class AdminController {
             res.status(500).json({ error: 'Failed to retrieve loan', message: error.message });
         }
     }
+
+    // ======================== loan related admin methods ends ======================== //
+
+    // ========================== followup related admin methods ======================== //
+
+    createFollowup = async (req, res) => {
+        try {
+            const admin = req.admin;
+            const loanId = parseInt(req.params.id);
+            const { userId, note, nextFollowUpDate , followUpType , followUpDate } = req.body;
+
+            if (!userId || !note || !followUpType || !followUpDate) {
+                const errors = [];
+                if (!userId) errors.push({ field: "userId", message: "User ID is required" });
+                if (!agentUserId) errors.push({ field: "agentUserId", message: "Agent User ID is required" });
+                if (!note) errors.push({ field: "note", message: "Note is required" });
+                if (!followUpType) errors.push({ field: "followUpType", message: "Follow Up Type is required" });
+                if (!followUpDate) errors.push({ field: "followUpDate", message: "Follow Up Date is required" });
+                return res.status(400).json({ message: 'All fields are required', errors });
+            }
+
+            if (followUpType !== 'call' && followUpType !== 'meeting' && followUpType !== 'email' && followUpType !== 'fieldVisit') {
+                return res.status(400).json({ error: 'Invalid follow up type. Must be either "call", "meeting" or "email"' });
+            }
+
+            const followup = await this.followupService.createFollowUp({
+                userId,
+                agentUserId: admin.id,
+                loanId,
+                note,
+                nextFollowUpDate,
+                followUpType,
+                followUpDate
+            });
+
+            res.status(201).json({ message: 'Follow up created successfully', followup });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Failed to create follow up', message: error.message });
+        }
+    }
+        
+    // ========================== followup related admin methods ends ======================== //
 }

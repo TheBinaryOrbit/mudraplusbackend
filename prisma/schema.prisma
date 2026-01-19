@@ -285,7 +285,7 @@ model followUp {
     loanId      Int
 
     note             String
-    followUpDate     DateTime
+    followUpDate     DateTime @default(now())
     nextFollowUpDate DateTime?
     followUpType     followUpType
 
