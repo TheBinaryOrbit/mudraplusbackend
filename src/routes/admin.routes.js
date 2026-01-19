@@ -31,7 +31,10 @@ adminRouter.get("/user/:id", authMiddleware.verifyAgentToken, adminController.ge
 
 
 
+
 // admin related to loans
+adminRouter.get("/loans", authMiddleware.verifyAgentToken, adminController.getAllloans); // admin
+adminRouter.get("/loan/:id", authMiddleware.verifyAgentToken, adminController.getSpecficLoan); // admin
 adminRouter.patch("/review/:id", authMiddleware.verifyAdminToken, loanController.reviewLoan); // admin
 adminRouter.patch("/approve/:id", authMiddleware.verifyAdminToken, loanController.approveLoan); // admin
 

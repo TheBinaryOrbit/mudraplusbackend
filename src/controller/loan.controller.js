@@ -1,6 +1,7 @@
 import { LoanService } from "../services/loan.service.js";
 import { TransactionService } from "../services/transaction.service.js";
 import { EventService } from "../services/event.service.js";
+
 export class LoanController {
     constructor() {
         this.loanService = new LoanService();
@@ -48,7 +49,6 @@ export class LoanController {
             const errors = [];
 
             if (!loanData.principalAmount || !loanData.tenure || !loanData.intrestType || !loanData.intrestRate || !loanData.totalIntrest || !loanData.totalAmountPayable) {
-                ``
                 if (!loanData.principalAmount) errors.push({ field: "principalAmount", message: "Principal amount is required" });
                 if (!loanData.tenure) errors.push({ field: "tenure", message: "Tenure is required" });
                 if (!loanData.intrestType) errors.push({ field: "intrestType", message: "Intrest type is required" });
@@ -217,6 +217,4 @@ export class LoanController {
             res.status(500).json({ error: 'Failed to fetch loans' });
         }
     }
-
-    
 }

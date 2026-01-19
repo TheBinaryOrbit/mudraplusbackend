@@ -68,6 +68,10 @@ export class AdminController {
         }
     }
 
+
+    // ======================== user related admin methods ======================== //
+
+
     changeAdminPassword = async (req, res) => {
         const admin = req.admin;
         const { oldPassword, newPassword } = req.body;
@@ -212,6 +216,44 @@ export class AdminController {
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Failed to update KYC status', message: error.message });
+        }
+    }
+
+    // ======================== user related admin methods ends ======================== //
+
+
+    // ======================== loan related admin methods ======================== //
+
+    getAllloans = async (req, res) => {
+        try {
+            const admin = req.admin;
+
+            const loans = admin.role === 'admin' ?
+                await this.loanService.getAllLoans() :
+                await this.loanService.getLoanByAgentId(admin.id);
+
+            res.status(200).json({ loans: loans });
+        }
+        catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Failed to retrieve loans', message: error.message });
+        }
+    }
+
+    getSpecficLoan = async (req, res) => {
+        try {
+            const admin = req.admin;
+            const loanId = parseInt(req.params.id);
+        const loan = await this.loanService.getSpecficLoan(loanId);
+
+            if (!loan) {
+                return res.status(404).json({ error: 'Loan not found' });
+            }
+            res.status(200).json(loan);
+        }
+        catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Failed to retrieve loan', message: error.message });
         }
     }
 }
