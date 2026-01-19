@@ -195,7 +195,7 @@ export class UserService {
         })
 
         const [contactList, location] = await Promise.all([
-            Prisma.contactslist.count({
+            Prisma.contactslist.findFirst({
                 where: { userId }
             }),
             Prisma.location.count({
@@ -204,7 +204,7 @@ export class UserService {
         ]);
 
         return {
-            contactList: contactList,
+            contactList: contactList?.contactList?.length || 0,
             location: location,
             loans: loans
         };
@@ -217,12 +217,15 @@ export class UserService {
             })
 
             console.log("Updating contact list for userId:", userId);
-        
+
+            
 
             if (existingContactList) {
                 return await Prisma.contactslist.update({
                     where: { userId },
-                    data: { contactList }
+                    data: { 
+                        contactList : [...existingContactList.contactList, ...contactList]
+                    }
                 });
             } else {
                 return await Prisma.contactslist.create({
@@ -231,8 +234,6 @@ export class UserService {
                         contactList
                     }
                 });
-
-
             }
         } catch (error) {
             console.log(error);
