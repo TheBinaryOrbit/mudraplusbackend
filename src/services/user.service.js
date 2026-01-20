@@ -115,12 +115,13 @@ export class UserService {
 
             // 3. Add only the missing ones to your status
             missingDocs.forEach(missing => {
-                if(missing.type === 'documents') {
+                if(missingDocs.includes("aadhar") || missingDocs.includes("pan") || missingDocs.includes("selfie") || missingDocs.includes("bankStatement")){
                     profileStatus.push({
-                        section: missing.type,
+                        section: "documents",
                         message: missing.message
                     });
-                }else{
+                }
+                if(missingDocs.includes("cibilScore")){
                     profileStatus.push({
                         section: "Cibil Score",
                         message: missing.message
