@@ -32,7 +32,6 @@ export class TransactionController {
     };
 
     createTransaction = async (req, res) => {
-        const user = req.user;
         const transactionData = req.body;
 
         const errors = [];
@@ -58,8 +57,10 @@ export class TransactionController {
             return res.status(404).json({ error: 'Loan not found' });
         }
 
+
+
         try {
-            const newTransaction = await this.transactionService.createTranscation(transactionData , user.id);
+            const newTransaction = await this.transactionService.createTranscation(transactionData , loan.userId);
 
             if (!newTransaction) {
                 return res.status(400).json({ error: 'Transaction creation failed due to invalid payment signature' });
@@ -124,5 +125,14 @@ export class TransactionController {
         }
     };
 
-
+    getOrderDeails = async (req, res) => {
+        const orderId = req.params.orderId;
+        try {
+            const order = await this.transactionService.getOrderDetails(orderId);
+            res.status(200).json(order);
+        }
+        catch (error) {
+            res.status(500).json({ error: 'Failed to fetch order details' });
+        }
+    };
 }

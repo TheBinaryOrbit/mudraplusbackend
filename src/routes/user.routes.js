@@ -11,6 +11,7 @@ const authMiddleware = new AuthMiddleware();
 
 userRouter.post("/register", userController.registerUser);
 
+
 userRouter.use(authMiddleware.verifyToken);
 
 userRouter.get("/profile-status", userController.profileStatus);

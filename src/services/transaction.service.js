@@ -13,6 +13,7 @@ export class TransactionService {
             const order = await razorpayInstance.orders.create(options);
             return order;
         } catch (error) {
+            console.log(error);
             throw new Error('Error creating order with Razorpay');
         }
     }
@@ -73,4 +74,16 @@ export class TransactionService {
             throw new Error('Error fetching transactions from the database');
         }
     }
+
+
+    async getOrderDetails(orderId) {
+        try {
+            const order = await razorpayInstance.orders.fetch(orderId);
+            return order;
+        }
+        catch (error) {
+            throw new Error('Error fetching order details from Razorpay');
+        }
+    }
 }
+

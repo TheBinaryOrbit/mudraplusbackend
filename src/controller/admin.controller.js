@@ -5,6 +5,7 @@ import { UserService } from "../services/user.service.js";
 import { EventService } from "../services/event.service.js";
 import { LoanService } from "../services/loan.service.js";
 import { FollowupService } from "../services/followup.service.js";
+import { TransactionService } from "../services/transaction.service.js";
 
 export class AdminController {
     constructor() {
@@ -14,6 +15,7 @@ export class AdminController {
         this.eventService = new EventService();
         this.loanService = new LoanService();
         this.followupService = new FollowupService();
+        this.transactionService = new TransactionService();
     }
 
     createAdmin = async (req, res) => {
@@ -65,13 +67,13 @@ export class AdminController {
         }
 
         const where = {};
-        if(type === 'agent'){
+        if (type === 'agent') {
             where.role = 'agent';
         }
 
-        
+
         try {
-            const admins =  await this.adminService.getAllAdmins(where);
+            const admins = await this.adminService.getAllAdmins(where);
             res.status(200).json(admins);
         }
         catch (error) {
@@ -126,11 +128,11 @@ export class AdminController {
                 await this.userService.getAllUsers() :
                 await this.userService.getUsersByAgentId(admin.id);
 
-            if(admin.role !== 'admin'){
+            if (admin.role !== 'admin') {
                 const filteredUsers = users.map(user => {
                     return user.user;
                 });
-                return  res.status(200).json({ users: filteredUsers });
+                return res.status(200).json({ users: filteredUsers });
             }
 
             res.status(200).json({ users: users });
@@ -147,7 +149,7 @@ export class AdminController {
             const field = req.query.field;
 
 
-            const user = await this.userService.getSpecficUser(userId , field);
+            const user = await this.userService.getSpecficUser(userId, field);
 
             if (!user) {
                 return res.status(404).json({ error: 'User not found' });
@@ -256,7 +258,7 @@ export class AdminController {
         try {
             const admin = req.admin;
             const loanId = parseInt(req.params.id);
-        const loan = await this.loanService.getSpecficLoan(loanId);
+            const loan = await this.loanService.getSpecficLoan(loanId);
 
             if (!loan) {
                 return res.status(404).json({ error: 'Loan not found' });
@@ -277,7 +279,7 @@ export class AdminController {
         try {
             const admin = req.admin;
             const loanId = parseInt(req.params.id);
-            const { userId, note, nextFollowUpDate , followUpType , followUpDate } = req.body;
+            const { userId, note, nextFollowUpDate, followUpType, followUpDate } = req.body;
 
             if (!userId || !note || !followUpType || !followUpDate) {
                 const errors = [];
@@ -309,6 +311,45 @@ export class AdminController {
             res.status(500).json({ error: 'Failed to create follow up', message: error.message });
         }
     }
-        
+
     // ========================== followup related admin methods ends ======================== //
+
+
+    // ======================= generate payment lnin ===============================//
+    generatePaymentLink = async (req, res) => {
+        try {
+            const admin = req.admin;
+            const { amount, loanId } = req.body;
+
+            if (!amount || !loanId) {
+                const errors = [];
+                if (!amount) errors.push({ field: "amount", message: "Amount is required" });
+                if (!loanId) errors.push({ field: "loanId", message: "Loan ID is required" });
+                return res.status(400).json({ message: 'All fields are required', errors });
+            }
+
+
+            const loan = await this.loanService.getLoanById(loanId);
+
+            if(amount > loan.remainingAmount) {
+                return  res.status(400).json({ error: 'Amount exceeds remaining loan amount' });
+            }
+
+
+            const order = await this.transactionService.createOrder(amount);
+            res.status(201).json(
+                {
+                    message: 'Payment link generated successfully',
+                    order: {
+                        orderId: order.id,
+                        amount: order.amount,
+                        currency: order.currency
+                    },
+                    link: `https://mudraplus.com/payment/${order.id}?loanId=${loanId}`
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: 'Failed to generate payment link', message: error.message });
+        }
+    }
 }
