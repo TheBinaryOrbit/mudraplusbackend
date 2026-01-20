@@ -52,9 +52,13 @@ export class TransactionController {
         }
 
 
-        const loan = await this.loanService.getLoanById(transactionData.loanId);
+        const loan = await this.loanService.getLoanById(parseInt(transactionData.loanId));
         if (!loan) {
             return res.status(404).json({ error: 'Loan not found' });
+        }
+
+        if(transactionData.amount > loan.remainingAmount) {
+            return  res.status(400).json({ error: 'Amount exceeds remaining loan amount' });
         }
 
 
@@ -80,9 +84,9 @@ export class TransactionController {
             await this.loanService.userUpdateLoan(loan.id, payload);
 
             // activity log
-            await this.eventService.createEvent(user.id, 'notification' , {
+            await this.eventService.createEvent(loan.userId, 'notification' , {
                 title: 'Payment Successful',
-                message: `Your payment of amount ${newTransaction.amount} for loan ID ${loan.id} has been successfully processed on ${new Date().toLocaleString()}.`
+                message: `Your payment of amount ${newTransaction.amount} for loan ID ${loan.loanNumber} has been successfully processed on ${new Date().toLocaleString()}.`
             });
 
             res.status(201).json({
@@ -129,7 +133,10 @@ export class TransactionController {
         const orderId = req.params.orderId;
         try {
             const order = await this.transactionService.getOrderDetails(orderId);
-            res.status(200).json(order);
+            res.status(200).json({
+                order : order,
+                rzpKey : process.env.RAZORPAY_KEY_ID
+            });
         }
         catch (error) {
             res.status(500).json({ error: 'Failed to fetch order details' });

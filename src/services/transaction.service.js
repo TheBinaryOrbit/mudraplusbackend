@@ -32,7 +32,7 @@ export class TransactionService {
         try {
             const newTransaction = await Prisma.transaction.create({
                 data: {
-                    loanId: transactionData.loanId,
+                    loanId: parseInt(transactionData.loanId),
                     userId: userId ? userId : transactionData.userId,
                     amount: transactionData.amount,
                     transactionType: transactionData.transactionType,
@@ -42,6 +42,7 @@ export class TransactionService {
             });
             return newTransaction;
         } catch (error) {
+            
             throw new Error('Error creating transaction in the database');
         }
     }

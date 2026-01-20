@@ -8,9 +8,8 @@ const authMiddleware = new AuthMiddleware();
 
 
 transactionRouter.get("/orders/:orderId", transactionController.getOrderDeails); // no token required
-// transactionRouter.post("/", transactionController.getOrderDeails); // no token required
 transactionRouter.post("/order", authMiddleware.verifyToken, transactionController.createOrder);
-transactionRouter.post("/", authMiddleware.verifyToken, transactionController.createTransaction);
+transactionRouter.post("/", transactionController.createTransaction);
 transactionRouter.get("/loan/:loanId", authMiddleware.verifyToken, transactionController.getTrascationsByLoanId);
 transactionRouter.get("/user", authMiddleware.verifyToken, transactionController.getTrascationsByUserId);
 export { transactionRouter };

@@ -336,7 +336,7 @@ export class AdminController {
             }
 
 
-            const order = await this.transactionService.createOrder(amount);
+            const order = await this.transactionService.createOrder(amount, 'INR', loan.loanNumber);
             res.status(201).json(
                 {
                     message: 'Payment link generated successfully',
