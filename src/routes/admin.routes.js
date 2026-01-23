@@ -15,6 +15,7 @@ adminRouter.post("/create-admin", authMiddleware.verifyAdminToken, adminControll
 adminRouter.get("/getalladmins", authMiddleware.verifyAdminToken, adminController.getAllAdmins); // ✅
 adminRouter.post("/assingn-agent", authMiddleware.verifyAdminToken, agentUserController.assignUser); // ✅
 adminRouter.delete("/unassingn-agent", authMiddleware.verifyAdminToken, agentUserController.unAssingnUser);
+adminRouter.post("/assign-multiple-users", authMiddleware.verifyAdminToken, agentUserController.assignManyUsersToAgent); // ✅
 adminRouter.get("/agent-users/:id", authMiddleware.verifyAdminToken, agentUserController.getAgentUsers);// ✅
 // user 
 adminRouter.get("/users", authMiddleware.verifyAgentToken, adminController.getAllUsers); // ✅

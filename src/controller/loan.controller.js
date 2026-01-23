@@ -1,6 +1,7 @@
 import { LoanService } from "../services/loan.service.js";
 import { TransactionService } from "../services/transaction.service.js";
 import { EventService } from "../services/event.service.js";
+import { calculatePrecloserAmount } from "../utils/precloseramount.utils.js";
 
 export class LoanController {
     constructor() {
@@ -196,11 +197,13 @@ export class LoanController {
 
             const loan = await this.loanService.getLoanById(parseInt(loanId));
 
+            const precloseramount = loan.status == 'requested' ? 0 : calculatePrecloserAmount(loan, process.env.PRECLOSER_CHARGES_PERCENTAGE || 1);
+
             if (!loan) {
                 return res.status(404).json({ error: 'Loan not found' });
             }
             res.status(200).json({
-                loan: loan
+                loan: {...loan , precloseramount: precloseramount}
             });
         } catch (error) {
             console.error(error);

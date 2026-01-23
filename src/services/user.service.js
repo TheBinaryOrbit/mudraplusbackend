@@ -18,13 +18,13 @@ export class UserService {
     async getUserByEmail(email) {
         return await Prisma.user.findUnique({
             where: { email },
-            include : {
-                referencesContacts : {
-                    select :{
-                        id : true,
-                        name : true,
-                        relation : true,
-                        phone : true,
+            include: {
+                referencesContacts: {
+                    select: {
+                        id: true,
+                        name: true,
+                        relation: true,
+                        phone: true,
                     }
                 }
             }
@@ -59,10 +59,6 @@ export class UserService {
         const profileStatus = [];
 
 
-        // the condition is like must have 
-        // at least 1 bank detail
-        // at least 2 addresses redintial and employment
-        // at least 5 documents aadhar , pan , selfie , bankstatment, cibil score
 
         if (user.gender == null || user.dob == null || user.employmentType == null || user.companyName == null || user.netMonthlyIncome == null || user.nextIncomeDate == null) {
             const missingFields = [];
@@ -103,33 +99,18 @@ export class UserService {
 
         if (user.documents.filter(doc => doc.documentType == 'employmentAddressProof' || doc.documentType == 'residentialAddressProof').length < 5) {
             const requiredDocs = [
-                { type: 'documents', message: 'Aadhar card , Pan card , Selfie, Bank statement are required' },  
-                { type: 'CIBIL Score', message: 'Update your latest CIBIL score' },  
+                { type: 'documents', message: 'Aadhar card , Pan card , Selfie, Bank statement are required' },
+                { type: 'CIBIL Score', message: 'Update your latest CIBIL score' },
             ];
 
             // 1. Get a simple list of document types the user actually has
+
             const uploadedTypes = user.documents.map(doc => doc.documentType);
 
-            // 2. Filter the requirements to find what's MISSING
-            const missingDocs = requiredDocs.filter(req => !uploadedTypes.includes(req.type));
-
-            // 3. Add only the missing ones to your status
-            missingDocs.forEach(missing => {
-                if(missingDocs.includes("aadhar") || missingDocs.includes("pan") || missingDocs.includes("selfie") || missingDocs.includes("bankStatement")){
-                    profileStatus.push({
-                        section: "documents",
-                        message: missing.message
-                    });
-                }
-                if(missingDocs.includes("cibilScore")){
-                    profileStatus.push({
-                        section: "Cibil Score",
-                        message: missing.message
-                    });
-                }
-            });
+            if (!uploadedTypes.includes('cibilScore')) { profileStatus.push({ section: "Cibil Score", message: 'Update your latest CIBIL score' }); }
+            if (!uploadedTypes.includes('aadhar') || !uploadedTypes.includes('pan') || !uploadedTypes.includes('selfie') || !uploadedTypes.includes('bankStatement')) profileStatus.push({ section: "documents", message: 'Aadhar card , Pan card , Selfie, Bank statement are required'});
         }
-        
+
 
         return {
             kycstatus: user.kycStatus,
@@ -192,6 +173,9 @@ export class UserService {
                 endDate: true,
                 remainingAmount: true,
                 createdAt: true,
+            },
+            orderBy : {
+                createdAt : 'desc'
             }
         })
 
@@ -219,13 +203,13 @@ export class UserService {
 
             console.log("Updating contact list for userId:", userId);
 
-            
+
 
             if (existingContactList) {
                 return await Prisma.contactslist.update({
                     where: { userId },
-                    data: { 
-                        contactList : [...existingContactList.contactList, ...contactList]
+                    data: {
+                        contactList: [...existingContactList.contactList, ...contactList]
                     }
                 });
             } else {
@@ -266,7 +250,7 @@ export class UserService {
 
 
     // admin user list
-    async getAllUsers(where) {
+    async getAllUsers(where, page, limit) {
         try {
             const users = await Prisma.user.findMany({
                 where: {
@@ -282,7 +266,10 @@ export class UserService {
                     createdAt: true,
                     isVerified: true,
                     kycStatus: true,
-                }
+                    isBlocked: true,
+                },
+                skip: page && limit ? (parseInt(page) - 1) * parseInt(limit) : undefined,
+                take: limit ? parseInt(limit) : undefined,
             });
             return users;
         } catch (error) {
@@ -292,10 +279,10 @@ export class UserService {
     }
 
     // agent 
-    async getUsersByAgentId(agentId) {
+    async getUsersByAgentId(where, page, limit) {
         return await Prisma.agentUser.findMany({
             where: {
-                agentId: agentId
+                ...where,
             },
             include: {
                 user: {
@@ -311,7 +298,9 @@ export class UserService {
                         kycStatus: true,
                     },
                 }
-            }
+            },
+            skip: page && limit ? (parseInt(page) - 1) * parseInt(limit) : undefined,
+            take: limit ? parseInt(limit) : undefined,
         });
     }
 

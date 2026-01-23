@@ -1,7 +1,7 @@
 import { TransactionService } from "../services/transaction.service.js";
 import { LoanService } from "../services/loan.service.js";
 import { EventService } from "../services/event.service.js";
-
+import { calculatePrecloserAmount } from "../utils/precloseramount.utils.js";
 export class TransactionController {
     constructor() {
         this.transactionService = new TransactionService();
@@ -46,8 +46,8 @@ export class TransactionController {
         }
 
 
-        if(!transactionData.transactionType.match(/^(repayment|disbursement)$/i)){
-            errors.push({ field: "transactionType", message: "Transaction type must be either 'repayment' or 'disbursement'" });
+        if(!transactionData.transactionType.match(/^(repayment|disbursement|precloserrepayment)$/i)){
+            errors.push({ field: "transactionType", message: "Transaction type must be either 'repayment', 'disbursement' or 'precloserrepayment'" });
             return res.status(400).json({ message: 'Validation errors', errors });
         }
 
@@ -62,6 +62,21 @@ export class TransactionController {
         }
 
 
+        // Precloser repayment is not applicable for flat interest type loans
+        if(transactionData.transactionType.toLowerCase() === 'precloserrepayment' && loan.intrestType === 'flat'){
+            return res.status(400).json({ error: 'Precloser repayment is not applicable for flat interest type loans' });
+        }
+
+
+        const currentDate = new Date();
+        if(transactionData.transactionType.toLowerCase() === 'precloserrepayment' && currentDate > new Date(loan.endDate)){
+            return res.status(400).json({ error: 'Precloser repayment is only allowed before the loan end date' });
+        }
+
+
+
+
+
 
         try {
             const newTransaction = await this.transactionService.createTranscation(transactionData , loan.userId);
@@ -70,14 +85,19 @@ export class TransactionController {
                 return res.status(400).json({ error: 'Transaction creation failed due to invalid payment signature' });
             }
 
-            // logic to update loan status or paid amount can be added here
+            let precCloserAmount = 0;
+            if(transactionData.transactionType.toLowerCase() === 'precloserrepayment'){
+                precCloserAmount = calculatePrecloserAmount(loan, process.env.PRECLOSER_CHARGES_PERCENTAGE || 1);
+            }
+            
+
 
             const payload = {
                 paidAmount: newTransaction.amount + loan.paidAmount,
-                remainingAmount: loan.totalAmountPayable - (loan.paidAmount + newTransaction.amount)
+                remainingAmount: precCloserAmount > 0 && transactionData.amount === precCloserAmount ? 0 : loan.totalAmountPayable - (loan.paidAmount + newTransaction.amount)
             };
 
-            if (payload.paidAmount === loan.totalAmountPayable) {
+            if (payload.paidAmount === loan.totalAmountPayable || (precCloserAmount > 0 && transactionData.amount === precCloserAmount)) {
                 payload.status = 'closed';
             }
 

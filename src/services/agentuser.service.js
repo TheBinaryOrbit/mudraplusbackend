@@ -50,4 +50,16 @@ export class AgentUserService {
             }
         });
     }
+
+    async assignManyUsersToAgent(agentId, userIds) {
+        const agentUserData = userIds.map(userId => ({
+            agentId: agentId,
+            userId: userId
+        }));
+
+        return await Prisma.agentUser.createMany({
+            data: agentUserData,
+            skipDuplicates: true
+        });
+    }
 }

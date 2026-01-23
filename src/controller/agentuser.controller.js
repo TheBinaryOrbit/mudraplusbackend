@@ -65,10 +65,39 @@ export class AgentUserController {
             const assignedUser = await this.agentUserService.getUsersByAgentId(agentId);
             const agent = assignedUser.length > 0 ? assignedUser[0]?.agent : null;
             assignedUser.forEach(au => { delete au?.agent; });
-            res.status(200).json({  agent , assignedUser });
+            res.status(200).json({ agent, assignedUser });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Failed to fetch agent-user assignments', message: error.message });
+        }
+    }
+
+
+    assignManyUsersToAgent = async (req, res) => {
+        try {
+            const admin = req.admin;
+            if (admin.role !== 'admin') {
+                return res.status(403).json({ error: 'Only admin can assign users to agents' });
+            }
+
+            const { agentId, userIds } = req.body;
+
+            if (!agentId || !Array.isArray(userIds) || userIds.length === 0) {
+                const errors = [];
+                if (!agentId) errors.push({ field: "agentId", message: "Agent ID is required" });
+                if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+                    errors.push({ field: "userIds", message: "An array of User IDs is required" });
+                }
+                return res.status(400).json({ message: 'agentId and userIds are required', errors });
+            }
+
+            const result = await this.agentUserService.assignManyUsersToAgent(agentId, userIds);
+            res.status(201).json(result);
+
+        }
+        catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Failed to assign users to agent', message: error.message });
         }
     }
 }

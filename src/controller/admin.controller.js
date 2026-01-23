@@ -122,11 +122,18 @@ export class AdminController {
 
     getAllUsers = async (req, res) => {
         const admin = req.admin;
+        const { isblocked, kycStatus , employmentType , page , limit } = req.query;
+        const filters = {};
+
+        if(isblocked === 'true' || isblocked === true) filters.isBlocked = true;
+        if(kycStatus) filters.kycStatus = kycStatus;
+        if(employmentType) filters.employmentType = employmentType;
+
 
         try {
             const users = admin.role === 'admin' ?
-                await this.userService.getAllUsers() :
-                await this.userService.getUsersByAgentId(admin.id);
+                await this.userService.getAllUsers(filters, page, limit) :
+                await this.userService.getUsersByAgentId({ ...filters, agentId: admin.id }, page, limit);
 
             if (admin.role !== 'admin') {
                 const filteredUsers = users.map(user => {

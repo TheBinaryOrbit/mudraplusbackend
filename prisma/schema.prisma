@@ -352,6 +352,7 @@ enum loanStatus {
 enum transactionType {
     disbursement
     repayment
+    precloserrepayment
 }
 
 enum eventType {
