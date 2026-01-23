@@ -267,6 +267,11 @@ export class UserService {
                     isVerified: true,
                     kycStatus: true,
                     isBlocked: true,
+                    _count : {
+                        select : {
+                            agentUsers : true
+                        }
+                    }
                 },
                 skip: page && limit ? (parseInt(page) - 1) * parseInt(limit) : undefined,
                 take: limit ? parseInt(limit) : undefined,
