@@ -40,6 +40,7 @@ adminRouter.patch("/loan/review/:id", authMiddleware.verifyAdminToken, loanContr
 adminRouter.patch("/loan/approve/:id", authMiddleware.verifyAdminToken, loanController.approveLoan); // admin
 adminRouter.patch("/loan/followup/:id", authMiddleware.verifyAgentToken, adminController.createFollowup); // admin
 adminRouter.post("/loan/create-payment-link", authMiddleware.verifyAdminToken, adminController.generatePaymentLink); // admin
+adminRouter.patch("/loan/change-status/:id", authMiddleware.verifyAdminToken, loanController.changesLoanStatus); // admin
 
 
 

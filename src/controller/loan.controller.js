@@ -73,8 +73,11 @@ export class LoanController {
                 totalIntrest: loanData.totalIntrest,
                 totalAmountPayable: loanData.totalAmountPayable,
                 expiryDate: new Date(new Date().getTime() + (loanData.expiryDays * 24 * 60 * 60 * 1000)),
-                status: 'approved'
+                status: 'approved',
+                processingFee : loanData.principalAmount * process.env.PROCESSING_FEE_PERCENTAGE / 100
             }
+
+
 
             const updatedLoan = await this.loanService.adminUpdateLoan(parseInt(loanId), payload);
             // activity log
@@ -138,9 +141,11 @@ export class LoanController {
             const transactionData = {
                 loanId: loan.id,
                 userId: loan.userId,
-                amount: loan.principalAmount,
+                amount: loan.principalAmount - loan.processingFee,
                 transactionType: 'disbursement',
             }
+
+            // return
             
             const [updatedLoan , transaction] = await Promise.all([
                 this.loanService.adminUpdateLoan(parseInt(loanId), payload),

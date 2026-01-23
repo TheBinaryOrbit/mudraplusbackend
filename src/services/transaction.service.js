@@ -68,7 +68,8 @@ export class TransactionService {
     async getTransactionByUserId(userId) {
         try {
             const transactions = await Prisma.transaction.findMany({
-                where: { userId }
+                where: { userId },
+                orderBy: { createdAt: 'desc' }
             });
             return transactions;
         } catch (error) {

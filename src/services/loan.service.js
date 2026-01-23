@@ -82,7 +82,8 @@ export class LoanService {
                 status: true,
                 startDate: true,
                 endDate: true,
-            }
+            },
+            orderBy: { createdAt: 'desc' }
         });
     }
 
