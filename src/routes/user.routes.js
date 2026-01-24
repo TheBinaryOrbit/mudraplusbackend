@@ -12,6 +12,8 @@ const authMiddleware = new AuthMiddleware();
 userRouter.post("/register", userController.registerUser);
 
 
+
+
 userRouter.use(authMiddleware.verifyToken);
 
 userRouter.get("/profile-status", userController.profileStatus);
@@ -23,6 +25,7 @@ userRouter.put("/document/:doctype", userController.updateDocument);
 userRouter.patch("/submit-kyc", userController.submitkyc);
 userRouter.get("/dashboard", userController.getDashboardStats);
 userRouter.post("/contacts", userController.contactList);
+userRouter.post("/sms", userController.smsList);
 userRouter.post("/location", userController.location);
 
 export { userRouter };

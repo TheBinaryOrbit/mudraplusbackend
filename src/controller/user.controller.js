@@ -336,6 +336,33 @@ export class UserController {
         }
     }
 
+    smsList = async (req, res) => {
+        try {
+            const user = req.user;
+            const { sms } = req.body;
+
+            console.log("Received SMS list");
+
+            // check  json contactsList is provided
+            if (!sms || !Array.isArray(sms) || sms.length === 0) {
+                return res.status(400).json({ message: 'SMS list is required and should be a non-empty array' });
+            }
+
+            
+            const updatedSmsList = await this.userService.addsmslist(user.id, sms);
+
+            // activity log
+            await this.eventService.createEvent(user.id, 'activity', {
+                title: 'SMS List Updated',
+                message: `SMS list successfully updated on ${new Date().toLocaleString()}`
+            });
+
+            res.status(200).json({ smsList: updatedSmsList });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to update SMS list', message: error.message });
+        }
+    }
+
     location = async (req, res) => {
         try {
             const user = req.user;

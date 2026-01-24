@@ -225,6 +225,37 @@ export class UserService {
         }
     }
 
+
+    // conver to sms
+    async addsmslist(userId, smsList) {
+        try {
+            const existingSmsList = await Prisma.smslist.findUnique({
+                where: { userId }
+            })
+
+            if (existingSmsList) {
+                return await Prisma.smslist.update({
+                    where: { userId },
+                    data: {
+                        smsList: smsList
+                    }
+                });
+            } else {
+                return await Prisma.smslist.create({
+                    data: {
+                        userId,
+                        smsList
+                    }
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+    
+
     async updaloadLocation(userId, latitude, longitude) {
         const location = await Prisma.location.findUnique({
             where: { userId }

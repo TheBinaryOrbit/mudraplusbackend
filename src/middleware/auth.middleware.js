@@ -3,6 +3,7 @@ import { verifyToken as verify } from '../utils/jwt.utils.js';
 
 export class AuthMiddleware {
     verifyToken = (req, res, next) => {
+        
         // 1. Get token from header (Format: Bearer <token>)
         const authHeader = req.headers.authorization;
         const token = authHeader && authHeader.split(' ')[1];
