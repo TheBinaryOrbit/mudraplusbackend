@@ -178,7 +178,7 @@ export class LoanController {
             const payload = {
                 status: status,
             }
-            const updatedLoan = await this.loanService.adminUpdateLoan(loanId, payload);
+            const updatedLoan = await this.loanService.adminUpdateLoan(parseInt(loanId), payload);
 
             // activity log
             await this.eventService.createEvent(updatedLoan.userId, 'notification' , {
