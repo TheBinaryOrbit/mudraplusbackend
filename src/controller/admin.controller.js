@@ -270,7 +270,7 @@ export class AdminController {
             if (!loan) {
                 return res.status(404).json({ error: 'Loan not found' });
             }
-            res.status(200).json(loan);
+            res.status(200).json({...loan , pfp : process.env.PROCESSING_FEE_PERCENTAGE});
         }
         catch (error) {
             console.error(error);
