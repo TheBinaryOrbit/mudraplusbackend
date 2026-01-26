@@ -149,6 +149,7 @@ model loan {
     // penelty
     penaltyAmount Float? @default(0)
     processingFee Float? @default(0)
+    gstAmount     Float? @default(0)
 
     status loanStatus @default(requested)
 

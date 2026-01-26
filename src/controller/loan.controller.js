@@ -74,7 +74,8 @@ export class LoanController {
                 totalAmountPayable: loanData.totalAmountPayable,
                 expiryDate: new Date(new Date().getTime() + (loanData.expiryDays * 24 * 60 * 60 * 1000)),
                 status: 'approved',
-                processingFee : loanData.principalAmount * process.env.PROCESSING_FEE_PERCENTAGE / 100
+                processingFee : loanData.principalAmount * process.env.PROCESSING_FEE_PERCENTAGE / 100,
+                gstAmount : (loanData.principalAmount * process.env.PROCESSING_FEE_PERCENTAGE / 100) * (process.env.GST_PERCENTAGE / 100)
             }
 
 
@@ -141,7 +142,7 @@ export class LoanController {
             const transactionData = {
                 loanId: loan.id,
                 userId: loan.userId,
-                amount: loan.principalAmount - loan.processingFee,
+                amount: loan.principalAmount - loan.processingFee - loan.gstAmount,
                 transactionType: 'disbursement',
             }
 
