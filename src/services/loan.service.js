@@ -87,8 +87,9 @@ export class LoanService {
         });
     }
 
-    async getAllLoans() {
+    async getAllLoans(filters = {}) {
         return await Prisma.loan.findMany({
+            where: filters,
             select: {
                 id: true,
                 loanNumber: true,
@@ -109,9 +110,10 @@ export class LoanService {
         });
     }
 
-    async getLoanByAgentId(agentId) {
+    async getLoanByAgentId(agentId, filters = {}) {
         return await Prisma.loan.findMany({
             where: {
+                ...filters,
                 status : { notIn : ['requested' , 'applied']},
                 user: {
                     agentUsers: {

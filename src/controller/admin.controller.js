@@ -248,10 +248,15 @@ export class AdminController {
     getAllloans = async (req, res) => {
         try {
             const admin = req.admin;
+            const status = req.query.status;
+            const filters = {};
+
+            if (status) filters.status = status;
+            
 
             const loans = admin.role === 'admin' ?
-                await this.loanService.getAllLoans() :
-                await this.loanService.getLoanByAgentId(admin.id);
+                await this.loanService.getAllLoans(filters) :
+                await this.loanService.getLoanByAgentId(admin.id, filters);
 
             res.status(200).json({ loans: loans });
         }
