@@ -49,6 +49,7 @@ export class UserController {
 
         } catch (error) {
             console.log(error);
+            if(error.code == 'P2002') return res.status(409).json({ message: 'User already exists', errors: [{ field: "email/phone", message: "Email or Phone already in use" }] });
             res.status(500).json({ error: 'Failed to register user', message: error.message });
         }
     }
