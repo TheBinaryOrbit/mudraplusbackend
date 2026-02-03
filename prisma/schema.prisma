@@ -364,6 +364,7 @@ enum loanStatus {
     closed
     overdue
     defaulted
+    rejected
 }
 
 enum transactionType {
