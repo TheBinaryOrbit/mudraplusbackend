@@ -81,4 +81,31 @@ const stopCronJobs = (jobs) => {
   }
 };
 
+// Auto-start cron jobs when this file is run directly
+const cronJobs = initCronJobs();
+
+// Graceful shutdown handlers
+process.on('SIGINT', () => {
+  logger.info('[Cron Scheduler] Received SIGINT, shutting down gracefully...');
+  stopCronJobs(cronJobs);
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  logger.info('[Cron Scheduler] Received SIGTERM, shutting down gracefully...');
+  stopCronJobs(cronJobs);
+  process.exit(0);
+});
+
+// Keep the process running
+process.on('uncaughtException', (error) => {
+  logger.error('[Cron Scheduler] Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('[Cron Scheduler] Unhandled Rejection at:', { promise, reason });
+});
+
+logger.info('[Cron Scheduler] Cron jobs process is running. Press Ctrl+C to stop.');
+
 export { initCronJobs, stopCronJobs };
