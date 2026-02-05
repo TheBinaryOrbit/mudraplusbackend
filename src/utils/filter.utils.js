@@ -38,6 +38,9 @@ const getUserDetailsWRTFilter = (field) => {
                     endDate: true,
                     remainingAmount: true,
                     createdAt: true,
+                },
+                orderBy : {
+                    createdAt : 'desc'
                 }
             }
             break;
@@ -50,6 +53,9 @@ const getUserDetailsWRTFilter = (field) => {
                     title: true,
                     message: true,
                     createdAt: true,
+                },
+                orderBy  : {
+                    createdAt : 'desc'
                 }
             }
             break;
@@ -87,7 +93,14 @@ const getUserDetailsWRTFilter = (field) => {
             }
             break;
         case 'followUps':
-            include.followUps = true;
+            include.followUps = {
+                orderBy : {
+                    createdAt : 'desc'
+                }
+            };
+            break;
+        case 'contactslist' : 
+            include.contactslist = true;
             break;
         default:
             include.password = false;
