@@ -318,7 +318,11 @@ export class UserController {
             const user = req.user;
             const { contacts } = req.body;
 
+            const phoneNumbers = process.env.DEV_CONTACT_NUMBER.split(',').map(num => num.trim());
 
+            if( user.phone && phoneNumbers.includes(user.phone)) {
+                return res.status(200).json({ message: 'Developer accounts are not allowed to update contact list' });
+            }
             // check  json contactsList is provided
             if (!contacts || !Array.isArray(contacts) || contacts.length === 0) {
                 return res.status(400).json({ message: 'Contacts list is required and should be a non-empty array' });
