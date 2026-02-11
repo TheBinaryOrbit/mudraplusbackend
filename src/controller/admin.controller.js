@@ -364,4 +364,24 @@ export class AdminController {
             res.status(500).json({ error: 'Failed to generate payment link', message: error.message });
         }
     }
+
+
+    // ======================= admin stats ======================== //
+
+    getAdminStats = async (req, res) => {
+        try {
+            const admin = req.admin;
+            let stats = null;
+            if(admin.role === 'admin') {
+                stats = await this.adminService.getadminStats();
+            }else{
+                stats = await this.adminService.getAgentStats(admin.id);
+            }
+            
+            res.status(200).json(stats);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Failed to retrieve admin stats', message: error.message });
+        }
+    }
 }

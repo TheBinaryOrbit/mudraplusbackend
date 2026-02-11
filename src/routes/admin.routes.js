@@ -43,7 +43,8 @@ adminRouter.post("/loan/create-payment-link", authMiddleware.verifyAdminToken, a
 adminRouter.patch("/loan/change-status/:id", authMiddleware.verifyAdminToken, loanController.changesLoanStatus); // admin
 
 
-
+// admin statistics
+adminRouter.get("/stats", authMiddleware.verifyAdminToken, adminController.getAdminStats); // admin
 export { adminRouter };
 
 
