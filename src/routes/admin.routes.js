@@ -44,7 +44,7 @@ adminRouter.patch("/loan/change-status/:id", authMiddleware.verifyAdminToken, lo
 
 
 // admin statistics
-adminRouter.get("/stats", authMiddleware.verifyAdminToken, adminController.getAdminStats); // admin
+adminRouter.get("/stats", authMiddleware.verifyAgentToken, adminController.getAdminStats); // admin
 export { adminRouter };
 
 
